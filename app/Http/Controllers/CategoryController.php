@@ -12,10 +12,11 @@ class CategoryController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $categories =  Category::all();
-        return $categories;
+        $params = array( $request->query()) ;
+        return Category::where([$params])->paginate(10);
+        // return $categories;
     }
 
 
@@ -28,9 +29,9 @@ class CategoryController extends Controller
     public function store(Request $request)
     {
         $newCategory = $request->validate([
-            'code_id'     => 'required|unique:App\Category,code_id',
-            'name'        => 'required|string|min:5',
-            'description' => 'required|string|min:5'
+            'code_id'     => 'unique:App\Category,code_id',
+            'name'        => 'string|min:5',
+            'description' => 'string|min:5'
         ]);
         
         $category = new Category();
@@ -45,10 +46,11 @@ class CategoryController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show(Category $category)
+    public function show(Request $request ,Category $category)
     {
-        return $category;
-    }
+        $params = array( $request->query()) ;
+        return Category::where([$params])->paginate(10);
+    } 
 
 
     /**
@@ -60,16 +62,15 @@ class CategoryController extends Controller
      */
     public function update(Request $request, Category $category)
     {
-        $validate = $request->validate([
-            'name'       => 'required|string|min:5',
+        $newCategory = $request->validate([
+            'code_id'     => 'required|unique:App\Category,code_id',
+            'name'        => 'required|string|min:5',
+            'description' => 'required|string|min:5'
         ]);
-        if(!$validate){
-            return $validate;
-        }
-        $category->fill($request->all());
+        
+        $category->fill($newCategory);
         $category->save();
-//        $category->category()->sync($validate['category']);
-        return redirect('/home/category')->with('success', 'Category updated!');
+        return $category;
     }
 
     /**
@@ -78,12 +79,12 @@ class CategoryController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Category $category)
     {
         if($category->delete()){
-            return redirect('/home/category')->with('success', 'Status deleted!');
+            return  response()->json('Category deleted!');
         }
-        return redirect('/home/category')->with('success', 'Category not deleted!');
+        return response()->json('Category not deleted!');
     }
 
 

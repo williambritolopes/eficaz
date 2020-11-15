@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Carbon\Carbon;
 
 class ProductController extends Controller
 {
@@ -13,10 +14,11 @@ class ProductController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $products =  Product::with('category')->paginate(10);
-        return $products;
+        $params = array( $request->query()) ;
+        return Product::where([$params])->paginate(10);
+
     }
 
     /**
@@ -35,11 +37,15 @@ class ProductController extends Controller
             'description' => 'required|string|min:5',
             'price'       => 'required|numeric|min:1',
             'category_id'  => 'required|numeric',
-            'stock'       => 'required|numeric'
+            'stock'       => 'required|numeric',
         ]);
         
+        $created_at =  new Carbon($request->input('created_at'));
+
+
         $product = new Product();
         $product->fill($newproduct);
+        $product->created_at = $created_at;
         $product->save();
         return $product;
     }
@@ -53,21 +59,9 @@ class ProductController extends Controller
     public function show(Request $request ,Product $product)
     {
         $params = array( $request->query()) ;
-        return $product->with('category')->where([$params])->paginate(10);;
+        return $product->with('category')->where([$params])->paginate(10);
     }   
 
-    /**
-    * Display the specified resource with params.
-    *
-    * @param  int  $id
-    * @return \Illuminate\Http\Response
-    */
-    public function showParam(Request $request,Product $product)
-    {
-        $params = array( $request->query()) ;
-        return Product::with('category')->where([$params])->paginate(10);
-
-    }
 
 
     /**
@@ -81,15 +75,14 @@ class ProductController extends Controller
     {
 
         $newproduct = $request->validate([
-            'code_id'     => 'required|unique:App\Product,code_id',
-            'name'        => 'required|string|min:5',
-            'description' => 'required|string|min:5',
-            'price'       => 'required|numeric|min:1',
-            'category_id'  => 'required|numeric',
-            'stock'       => 'required|numeric'
+            'code_id'     => 'unique:App\Product,code_id',
+            'name'        => 'string|min:5',
+            'description' => 'string|min:5',
+            'price'       => 'numeric|min:1',
+            'category_id'  => 'numeric',
+            'stock'       => 'numeric'
         ]);
         
-        $product = new Product();
         $product->fill($newproduct);
         $product->save();
         return $product;
@@ -105,9 +98,9 @@ class ProductController extends Controller
     public function destroy(Product $product)
     {
         if($product->delete()){
-            return 'Product deleted';
+            return  response()->json('Category deleted!');
         }
-        return 'Product not deleted!';
+        return response()->json('Category not deleted!');
 
     }
 }
