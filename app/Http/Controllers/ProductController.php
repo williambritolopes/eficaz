@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
+use App\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -15,8 +15,7 @@ class ProductController extends Controller
      */
     public function index()
     {
-        return csrf_token();
-        $products =  Product::with('category')->get();
+        $products =  Product::with('category')->paginate(10);
         return $products;
     }
 
@@ -29,25 +28,20 @@ class ProductController extends Controller
     public function store(Request $request)
     {
 
-        // $request->validate([
-        //     'code_id'     => 'required',
-        //     'name'        => 'required',
-        //     'description' => 'required',
-        //     'price'       => 'required',
-        //     'categories'  => 'required',
-        //     'stock'       => 'required'
-        // ]);
-
-        Product::create($request->all());
-
-        return redirect()->route('products.index')
-            ->with('success', 'Product created successfully.');
+        // dd($request);
+        $newproduct = $request->validate([
+            'code_id'     => 'required|unique:App\Product,code_id',
+            'name'        => 'required|string|min:5',
+            'description' => 'required|string|min:5',
+            'price'       => 'required|numeric|min:1',
+            'category_id'  => 'required|numeric',
+            'stock'       => 'required|numeric'
+        ]);
         
-        // $product = new Product();
-        // $product->fill($request);
-        // $product->save();
-        // $product->category()->sync($request['categories']);
-        // return $product;
+        $product = new Product();
+        $product->fill($newproduct);
+        $product->save();
+        return $product;
     }
 
     /**
@@ -56,9 +50,23 @@ class ProductController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show(Product $product)
+    public function show(Request $request ,Product $product)
     {
-        return $product;
+        $params = array( $request->query()) ;
+        return $product->with('category')->where([$params])->paginate(10);;
+    }   
+
+    /**
+    * Display the specified resource with params.
+    *
+    * @param  int  $id
+    * @return \Illuminate\Http\Response
+    */
+    public function showParam(Request $request,Product $product)
+    {
+        $params = array( $request->query()) ;
+        return Product::with('category')->where([$params])->paginate(10);
+
     }
 
 
@@ -72,19 +80,18 @@ class ProductController extends Controller
     public function update(Request $request ,Product $product)
     {
 
-        $validate = $request->validate([
+        $newproduct = $request->validate([
+            'code_id'     => 'required|unique:App\Product,code_id',
             'name'        => 'required|string|min:5',
-            'description' => 'required|min:20',
-            'price'       => 'required|min:3',
-            'active'  => 'required',
-            'categories' => 'required' ,
-
+            'description' => 'required|string|min:5',
+            'price'       => 'required|numeric|min:1',
+            'category_id'  => 'required|numeric',
+            'stock'       => 'required|numeric'
         ]);
-
-        $product->fill($validate);
+        
+        $product = new Product();
+        $product->fill($newproduct);
         $product->save();
-        $product->category()->sync($validate['categories']);
-
         return $product;
 
     }
@@ -98,7 +105,7 @@ class ProductController extends Controller
     public function destroy(Product $product)
     {
         if($product->delete()){
-            return redirect('/home/product')->with('success', 'Product deleted!');
+            return 'Product deleted';
         }
         return 'Product not deleted!';
 

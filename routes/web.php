@@ -13,10 +13,12 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+
+Route::get('product/find','ProductController@showParam');
 Route::Resource('product', 'ProductController');
 Route::Resource('category', 'CategoryController');
 
 Route::get('/', function () {
-    return view('welcome');
+    return  csrf_token();
 });
 

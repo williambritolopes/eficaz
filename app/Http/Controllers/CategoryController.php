@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Category; 
+use App\Category; 
 use Illuminate\Http\Request;
 
 class CategoryController extends Controller
@@ -27,16 +27,15 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {
-        $validate = $request->validate([
-            'name'       => 'required|string|min:5',
+        $newCategory = $request->validate([
+            'code_id'     => 'required|unique:App\Category,code_id',
+            'name'        => 'required|string|min:5',
+            'description' => 'required|string|min:5'
         ]);
-        if(!$validate){
-            return $validate;
-        }
+        
         $category = new Category();
-        $category->fill($request->all());
+        $category->fill($newCategory);
         $category->save();
-        $category->status()->sync($validate['status']);
         return $category;
     }
 
