@@ -98,9 +98,9 @@ class ProductController extends Controller
     public function destroy(Product $product)
     {
         if($product->delete()){
-            return  response()->json('Category deleted!');
+            return  response()->json('Product deleted!');
         }
-        return response()->json('Category not deleted!');
+        return response()->json('Product not deleted!');
 
     }
 }
